@@ -1,0 +1,87 @@
+tosca_definitions_version: tosca_simple_yaml_1_0_0_wd03
+description: MongoDB installation with ansible.
+template_name: mongod-ansible-type
+template_version: 1.0.0-SNAPSHOT
+template_author: FastConnect
+
+imports:
+  - tosca-normative-types:1.0.0-SNAPSHOT
+  - toscaruntime-ansible-plugin-types:*
+
+node_types:
+  alien.nodes.ansible.Mongod:
+    derived_from: tosca.nodes.DBMS
+    description: >
+      A node to install Mongodb nosql database.
+    capabilities:
+      endpoint: tosca.capabilities.Endpoint.Database
+    tags:
+      icon: /images/mongodb.jpg
+    properties:
+      storage_path:
+        type: string
+        default: /data/db
+      db_path:
+        type: string
+        default: /data/db
+      db_port:
+        type: integer
+        default: 21707
+      user:
+        type: string
+        default: mongodb
+      group:
+        type: string
+        default: mongodb
+      component_version:
+        type: version
+        default: 3.2
+      replication_set:
+        type: string
+        required: false
+    interfaces:
+      Standard:
+        create:
+          inputs:
+            mongodb_version: { get_property: [ SELF, component_version] }
+            ansible:
+              options:
+                tags: mongo_create
+              flags:
+                - become
+          implementation:
+            file: playbook/site.yml
+        configure:
+          inputs:
+            mongodb_storage_path: { get_property: [ SELF, storage_path] }
+            mongodb_db_path: { get_property: [ SELF, db_path] }
+            mongodb_user: { get_property: [ SELF, user] }
+            mongodb_group: { get_property: [ SELF, group] }
+            mongodb_replication_set: { get_property: [ SELF, replication_set] }
+            mongodb_interfaces: { get_attribute: [ HOST, ip_address ]}
+            mongodb_db_port: { get_property: [ SELF, db_port ]}
+            ansible:
+              options:
+                tags: mongo_configure
+              flags:
+                - become
+          implementation:
+            file: playbook/site.yml
+        start:
+          inputs:
+            ansible:
+              options:
+                tags: mongo_start
+              flags:
+                - become
+          implementation:
+            file: playbook/site.yml
+        stop:
+          inputs:
+            ansible:
+              options:
+                tags: mongo_stop
+              flags:
+                - become
+          implementation:
+            file: playbook/site.yml
