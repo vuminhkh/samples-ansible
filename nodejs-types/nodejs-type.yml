@@ -18,11 +18,12 @@ node_types:
     properties:
       component_version:
         type: version
-        default: 4.x
+        default: 6.x
     interfaces:
       Standard:
         create:
           inputs:
+            nodejs_version: { get_property: [ SELF, component_version ] }
             ansible:
               options:
                 tags: nodejs_create
